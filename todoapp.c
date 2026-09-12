@@ -3,12 +3,14 @@
 
 #define MAX 100
 
-void input_line(char  s[]){
+char* input_line(void){
+	char *s = malloc(MAX);
 	int c,i=0;
-	printf("Enter:\n");
+	printf("Enter: ");
 	while (i<MAX-1 && (c=getchar()) != '\n')
 		s[i++] = c;
-	s[i++] = '\0';
+	s[i] = '\0';
+	return s;
 }
 
 void input_cleaning(void)
@@ -16,18 +18,6 @@ void input_cleaning(void)
 	int c;
 	while ((c=getchar())!=EOF && c != '\n')
 		;
-}
-
-char *take_input(void)
-{
-	char *str = malloc(MAX);
-	int i = 0;
-	int c;
-	char *ini = str;
-	while (i<MAX-1 && (c = getchar()) != '\n')
-		str[i++] = c;
-	str[i] = '\0';
-	return str;
 }
 
 int show(void)
@@ -95,7 +85,6 @@ int del(unsigned int line)
 	FILE *file_r = fopen("/home/calllol/newfolder/files/list.txt","r");
 	FILE *file_w = fopen("/home/calllol/newfolder/files/tmp.txt","w");
 	char task[MAX];
-
 	while(fgets(task,MAX,file_r)!=NULL)
 	{
 		if (--line == 0)
@@ -114,16 +103,16 @@ void clear_list(void)
 {
 	remove("/home/calllol/newfolder/files/list.txt");
 	FILE *file_r = fopen("/home/calllol/newfolder/files/list.txt","w");
+	fclose(file_r);
 }
 
 int main(void) {
 	char c;
-	char str[MAX];
+	char *str;
 	int index;
 	while (1)
 	{
-		printf("\n");
-		printf("[e(x)it/(s)how/(c)lear/(a)dd/(e)dit/(r)emove]\n");
+		printf("\n[e(x)it/(s)how/(c)lear/(a)dd/(e)dit/(r)emove]\n");
 		printf("Enter choice: \n");
 		c = getchar();
 		input_cleaning();
@@ -132,6 +121,7 @@ int main(void) {
 		switch(c)
 		{
 			case 'x':
+			case 'q':
 				printf("Exited\n");
 				exit(0);
 			case 's':
@@ -140,15 +130,15 @@ int main(void) {
 				break;
 			case 'a':
 				printf("Adding a task\n");
-				input_line(str);
+				str = input_line();
 				add(str);
 				break;
 			case 'e':
 				printf("Editing a task\n");
-				printf("Line to edit: ");
+				printf("Line to Edit: ");
 				scanf("%d",&index);
 				input_cleaning();
-				input_line(str);
+				str = input_line();
 				edit(index,str);
 				break;
 			case 'r':
@@ -166,6 +156,6 @@ int main(void) {
 				break;
 		}
 	}
-	;return 0;
+	return 0;
 }
 
