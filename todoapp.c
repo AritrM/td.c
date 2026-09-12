@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 #define MAX 100
 
 void input_line(char  s[]){
@@ -108,12 +109,14 @@ int del(unsigned int line)
 	remove("/home/calllol/newfolder/files/tmp.txt");
 	return 0;
 }
+
 void clear_list(void)
 {
 	remove("/home/calllol/newfolder/files/list.txt");
 	FILE *file_r = fopen("/home/calllol/newfolder/files/list.txt","w");
 }
-int something(void) {
+
+int main(void) {
 	char c;
 	char str[MAX];
 	int index;
@@ -166,8 +169,3 @@ int something(void) {
 	;return 0;
 }
 
-int main(void)
-{
-	something();
-	return 0;
-}
