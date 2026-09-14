@@ -11,9 +11,11 @@ typedef struct {
 
 typedef struct {
 	task *data;
-	unsigned int len;
-	unsigned int ulen;
+	int len;
+	int ulen;
 } list;
+
+list l;
 
 char* input_line(void){
 	char *s = malloc(MAX);
@@ -32,13 +34,50 @@ void input_cleaning(void)
 		;
 }
 
+int total_entries(void)
+{
+	FILE *file = fopen("list.txt","r");
+	int index = 0;
+	char s[MAX];
+	if (file == NULL)
+		return -1;
+	while ((fgets(s,MAX,file)) != NULL)
+		++index;
+	fclose(file);
+	return index;
+}
+
+void loading()
+{
+	FILE *file = fopen("list.txt","r");
+	extern list l;
+	int i,s;
+	l.ulen = total_entries();
+	l.len = l.ulen + 2;
+	if (file == NULL)
+		return;
+	l.data = (task *)malloc(sizeof(task)*l.len);
+	while(fscanf(file,"%d.[%d]",&i,&s) != EOF)
+	{
+		l.data[i].index = i;
+		l.data[i].status = s;
+		l.data[i].ptr= malloc(MAX);
+		fgets(l.data[i].ptr,MAX,file);
+		printf("%s",l.data[i].ptr);
+	}
+	printf("%s",l.data[1].ptr);
+	fclose(file);
+}
+
 int show(void)
 {
 	FILE *file = fopen("list.txt","r");
-	if (file == NULL)
-		return 0;
 	int index = 0;
 	char s[MAX];
+	if (file == NULL)
+		return 0;
+	printf("Total: %d\n",total_entries());
+
 	if(fgets(s,MAX,file)==NULL)
 		printf("No line.");
 	else
@@ -118,10 +157,21 @@ void clear_list(void)
 	fclose(file_r);
 }
 
+void free_space(void)
+{
+	extern list l;
+	while (--l.ulen > 0)
+		free(l.data[l.ulen].ptr);
+	free(l.data[l.ulen].ptr);
+	free(l.data);
+}
+
 int main(void) {
 	char c;
 	char *str;
 	int index;
+	extern list l;
+	loading();
 	while (1)
 	{
 		printf("\n[e(x)it/(s)how/(c)lear/(a)dd/(e)dit/(r)emove]\n");
@@ -135,6 +185,7 @@ int main(void) {
 			case 'x':
 			case 'q':
 				printf("Exited\n");
+				free_space();
 				exit(0);
 			case 's':
 				printf("All Tasks\n");
@@ -144,6 +195,7 @@ int main(void) {
 				printf("Adding a task\n");
 				str = input_line();
 				add(str);
+				free(str);
 				break;
 			case 'e':
 				printf("Editing a task\n");
@@ -152,6 +204,7 @@ int main(void) {
 				input_cleaning();
 				str = input_line();
 				edit(index,str);
+				free(str);
 				break;
 			case 'r':
 				printf("Removing a task\n");
