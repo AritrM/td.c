@@ -3,6 +3,18 @@
 
 #define MAX 100
 
+typedef struct {
+	unsigned int index;
+	int status;
+	char *ptr;
+} task;
+
+typedef struct {
+	task *data;
+	unsigned int len;
+	unsigned int ulen;
+} list;
+
 char* input_line(void){
 	char *s = malloc(MAX);
 	int c,i=0;
@@ -22,7 +34,7 @@ void input_cleaning(void)
 
 int show(void)
 {
-	FILE *file = fopen("/home/calllol/newfolder/files/list.txt","r");
+	FILE *file = fopen("list.txt","r");
 	if (file == NULL)
 		return 0;
 	int index = 0;
@@ -39,7 +51,7 @@ int show(void)
 
 int add(char *s)
 {
-	FILE *file = fopen("/home/calllol/newfolder/files/list.txt","a");
+	FILE *file = fopen("list.txt","a");
 	fputs(s,file);
 	fputs("\n",file);
 	fclose(file);
@@ -59,8 +71,8 @@ void copy(char *f1, char *f2)
 
 int edit(unsigned int line, char *s)
 {
-	FILE *file_r = fopen("/home/calllol/newfolder/files/list.txt","r");
-	FILE *file_w = fopen("/home/calllol/newfolder/files/tmp.txt","w");
+	FILE *file_r = fopen("list.txt","r");
+	FILE *file_w = fopen("tmp.txt","w");
 	char task[MAX];
 	while(fgets(task,MAX,file_r)!=NULL)
 	{
@@ -75,15 +87,15 @@ int edit(unsigned int line, char *s)
 	}
 	fclose(file_r);
 	fclose(file_w);
-	copy("/home/calllol/newfolder/files/tmp.txt","/home/calllol/newfolder/files/list.txt");
-	remove("/home/calllol/newfolder/files/tmp.txt");
+	copy("tmp.txt","list.txt");
+	remove("tmp.txt");
 	return 0;
 }
 
 int del(unsigned int line)
 {
-	FILE *file_r = fopen("/home/calllol/newfolder/files/list.txt","r");
-	FILE *file_w = fopen("/home/calllol/newfolder/files/tmp.txt","w");
+	FILE *file_r = fopen("list.txt","r");
+	FILE *file_w = fopen("tmp.txt","w");
 	char task[MAX];
 	while(fgets(task,MAX,file_r)!=NULL)
 	{
@@ -94,15 +106,15 @@ int del(unsigned int line)
 	}
 	fclose(file_r);
 	fclose(file_w);
-	copy("/home/calllol/newfolder/files/tmp.txt","/home/calllol/newfolder/files/list.txt");
-	remove("/home/calllol/newfolder/files/tmp.txt");
+	copy("tmp.txt","list.txt");
+	remove("tmp.txt");
 	return 0;
 }
 
 void clear_list(void)
 {
-	remove("/home/calllol/newfolder/files/list.txt");
-	FILE *file_r = fopen("/home/calllol/newfolder/files/list.txt","w");
+	remove("list.txt");
+	FILE *file_r = fopen("list.txt","w");
 	fclose(file_r);
 }
 
