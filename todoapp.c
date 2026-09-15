@@ -226,11 +226,13 @@ void free_space(list *lptr)
 {
 	if (lptr != NULL)
 	{
-		while (--lptr->ulen > 0)
-			if(lptr->data[lptr->ulen].ptr!= NULL)
-				free(lptr->data[lptr->ulen].ptr);
-		if(lptr->data[lptr->ulen].ptr!= NULL)
-			free(lptr->data[lptr->ulen].ptr);
+		if (lptr->ulen > 0) {
+			while (--lptr->ulen > 0)
+				if(lptr->data[lptr->ulen].ptr!= NULL) {
+					free(lptr->data[lptr->ulen].ptr); }
+			if(lptr->data[lptr->ulen].ptr!= NULL) {
+				free(lptr->data[lptr->ulen].ptr); }
+		}
 		free(lptr->data);
 		free(lptr);
 	}
@@ -238,9 +240,13 @@ void free_space(list *lptr)
 
 void clear_list(list *lptr)
 {
-	int i = -1;
-	while (--lptr->ulen>0)
+	if (lptr->ulen>0)
 	{
+		while (--lptr->ulen>0)
+		{
+			free(lptr->data[lptr->ulen].ptr);
+			lptr->data[lptr->ulen].ptr = NULL;
+		}
 		free(lptr->data[lptr->ulen].ptr);
 		lptr->data[lptr->ulen].ptr = NULL;
 	}
