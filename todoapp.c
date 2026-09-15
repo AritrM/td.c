@@ -2,7 +2,6 @@
 #include <stdlib.h>
 
 #define MAX 100
-
 typedef struct {
 	unsigned int index;
 	int status;
@@ -25,15 +24,13 @@ char* input_line(void){
 	return s;
 }
 
-void input_cleaning(void)
-{
+void input_cleaning(void) {
 	int c;
 	while ((c=getchar())!=EOF && c != '\n')
 		;
 }
 
-int total_entries(void)
-{
+int total_entries(void) {
 	FILE *file = fopen("list.txt","r");
 	int index = 0;
 	char s[MAX];
@@ -46,40 +43,34 @@ int total_entries(void)
 	return index;
 }
 
-list *loading(list *lptr)
-{
+list *loading(list *l) {
 	FILE *file = fopen("list.txt","r");
 	int i,s;
-	lptr->ulen = total_entries();
-	lptr->len = lptr->ulen + 2;
+	l->ulen = total_entries();
+	l->len = l->ulen + 2;
 	if (file == NULL) {
-		free(lptr);
+		free(l);
 		return NULL;
 	}
-	lptr->data = (task *)malloc(sizeof(task)*lptr->len);
-	if (fscanf(file,"%d.[%d]",&i,&s) == EOF)
-	{
+	l->data = (task *)malloc(sizeof(task)*l->len);
+	if (fscanf(file,"%d.[%d]",&i,&s) == EOF) {
 		printf("cannot find appropriate format\n");
 		fclose(file);
-		return lptr;
+		return l;
 	} else
-		// freopen("list.txt","r",file);
 		rewind(file);
-
-	while(fscanf(file,"%d.[%d]",&i,&s) != EOF)
-	{
+	while(fscanf(file,"%d.[%d]",&i,&s) != EOF) {
 		--i;
-		lptr->data[i].index = i;
-		lptr->data[i].status = s;
-		lptr->data[i].ptr= malloc(MAX);
-		fgets(lptr->data[i].ptr,MAX,file);
+		l->data[i].index = i;
+		l->data[i].status = s;
+		l->data[i].ptr= malloc(MAX);
+		fgets(l->data[i].ptr,MAX,file);
 	}
 	fclose(file);
-	return lptr;
+	return l;
 }
 
-int show(void)
-{
+int show(void) {
 	FILE *file = fopen("list.txt","r");
 	int index = 0;
 	char s[MAX];
@@ -96,27 +87,24 @@ int show(void)
 	return 0;
 }
 
-void showv2(list* lptr)
-{
+void showv2(list* l) {
 	int i = 0;
-	if (lptr == NULL)
+	if (l == NULL)
 		printf("Tasks cannot be loaded.");
-	else while (i < lptr->len)
-	{
+	else while (i < l->len) {
 		printf("%d.",i+1);
-		if (lptr->data[i].status == 1)
-			printf("# "); //completion
+		if (l->data[i].status == 1)
+			printf("☑ "); //completion
 		else
-			printf("@ "); //incompletion
-		printf("%s",lptr->data[i].ptr);
-		if(lptr->data[i].ptr == NULL)
+			printf("☐ "); //incompletion
+		printf("%s",l->data[i].ptr);
+		if(l->data[i].ptr == NULL)
 			printf("\n");
 		++i;
 	}
 }
 
-int add(char *s)
-{
+int add(char *s) {
 	FILE *file = fopen("list.txt","a");
 	fputs(s,file);
 	fputs("\n",file);
@@ -124,23 +112,20 @@ int add(char *s)
 	return 0;
 }
 
-int tempadd(list *lptr,char *s)
-{
-	lptr->data[lptr->ulen].index = lptr->ulen;
-	lptr->data[lptr->ulen].status = 0;
-	lptr->data[lptr->ulen].ptr = s;
-	lptr->ulen++;
-	if (lptr->ulen == lptr->len)
-	{
-		lptr->len += 2;
-		lptr->data = (task *) realloc(lptr->data,sizeof(task)*lptr->len);
+int tempadd(list *l,char *s) {
+	l->data[l->ulen].index = l->ulen;
+	l->data[l->ulen].status = 0;
+	l->data[l->ulen].ptr = s;
+	l->ulen++;
+	if (l->ulen == l->len) {
+		l->len += 2;
+		l->data = (task *) realloc(l->data,sizeof(task)*l->len);
 	}
-	showv2(lptr);
+	showv2(l);
 	return 0;
 }
 
-void copy(char *f1, char *f2)
-{
+void copy(char *f1, char *f2) {
 	FILE *file_r = fopen(f1,"r");
 	FILE *file_w = fopen(f2,"w");
 	char s[MAX];
@@ -150,15 +135,12 @@ void copy(char *f1, char *f2)
 	fclose(file_w);
 }
 
-int edit(unsigned int line, char *s)
-{
+int edit(unsigned int line, char *s) {
 	FILE *file_r = fopen("list.txt","r");
 	FILE *file_w = fopen("tmp.txt","w");
 	char task[MAX];
-	while(fgets(task,MAX,file_r)!=NULL)
-	{
-		if (--line == 0)
-		{
+	while(fgets(task,MAX,file_r)!=NULL) {
+		if (--line == 0) {
 			printf("found\n");
 			fputs(s,file_w);
 			fputs("\n",file_w);
@@ -173,23 +155,34 @@ int edit(unsigned int line, char *s)
 	return 0;
 }
 
-int tempedit(list *lptr,unsigned int line, char *s)
-{
-	lptr->data[--line].ptr = s;
-	showv2(lptr);
+int tempedit(list *l,unsigned int line, char *s) {
+	if(line<=l->ulen) {
+		l->data[--line].ptr = s;
+		showv2(l);
+	}
 	return 0;
 }
 
-int save(list *lptr)
-{
+void mark_toggle(list *l, int i) {
+	if (l->data[i-1].ptr!= NULL){
+		if (l->data[i-1].status == 1)
+			l->data[i-1].status = 0;
+		else
+			l->data[i-1].status = 1;
+	}
+	else 
+		printf("No task to mark\n");
+	showv2(l);
+}
+
+int save(list *l) {
 	FILE *file = fopen ("temp.txt","w");
 	int i = -1, correction = 0;
-	while(++i<lptr->ulen)
-	{
-		if (lptr->data[i].ptr == NULL)
+	while(++i<l->ulen) {
+		if (l->data[i].ptr == NULL)
 			++correction;
 		else
-			fprintf(file,"%d.[%d]%s",lptr->data[i].index+1-correction,lptr->data[i].status,lptr->data[i].ptr);
+			fprintf(file,"%d.[%d]%s",l->data[i].index+1-correction,l->data[i].status,l->data[i].ptr);
 	}
 	fclose(file);
 	copy("temp.txt","list.txt");
@@ -197,13 +190,11 @@ int save(list *lptr)
 	return 0;
 }
 
-int del(unsigned int line)
-{
+int del(unsigned int line) {
 	FILE *file_r = fopen("list.txt","r");
 	FILE *file_w = fopen("tmp.txt","w");
 	char task[MAX];
-	while(fgets(task,MAX,file_r)!=NULL)
-	{
+	while(fgets(task,MAX,file_r)!=NULL) {
 		if (--line == 0)
 			;
 		else
@@ -216,47 +207,44 @@ int del(unsigned int line)
 	return 0;
 }
 
-int tempdel(list *lptr,unsigned int line)
-{
-	free(lptr->data[line-1].ptr);
-	lptr->data[line-1].ptr = NULL;
+int tempdel(list *l,unsigned int line) {
+	if(line<=l->ulen) {
+		free(l->data[line-1].ptr);
+		l->data[line-1].ptr = NULL;
+	}
 	return 0;
 }
 
-void free_space(list *lptr)
+void free_space(list *l)
 {
-	if (lptr != NULL)
+	if (l != NULL)
 	{
-		if (lptr->ulen > 0) {
-			while (--lptr->ulen > 0)
-					free(lptr->data[lptr->ulen].ptr);
-				free(lptr->data[lptr->ulen].ptr);
+		if (l->ulen > 0) {
+			while (--l->ulen > 0)
+				free(l->data[l->ulen].ptr);
+			free(l->data[l->ulen].ptr);
 		}
-		free(lptr->data);
-		free(lptr);
+		free(l->data);
+		free(l);
 	}
 }
 
-void clear_list(list *lptr)
-{
-	if (lptr->ulen>0)
-	{
-		while (--lptr->ulen>0)
-		{
-			free(lptr->data[lptr->ulen].ptr);
-			lptr->data[lptr->ulen].ptr = NULL;
+void clear_list(list *l) {
+	if (l->ulen>0) {
+		while (--l->ulen>0) {
+			free(l->data[l->ulen].ptr);
+			l->data[l->ulen].ptr = NULL;
 		}
-		free(lptr->data[lptr->ulen].ptr);
-		lptr->data[lptr->ulen].ptr = NULL;
+		free(l->data[l->ulen].ptr);
+		l->data[l->ulen].ptr = NULL;
 	}
-	save(lptr);
+	save(l);
 }
 
-list *refresh(list *lptr)
-{
-	list *l = (list *)malloc(sizeof(list));
-	free_space(lptr);
-	return loading(l);
+list *refresh(list *l) {
+	list *l1 = (list *)malloc(sizeof(list));
+	free_space(l);
+	return loading(l1);
 }
 
 int main(void) {
@@ -269,7 +257,7 @@ int main(void) {
 	lptr = loading(lptr);
 	while (1)
 	{
-		printf("\n[e(x)it/(s)how/(c)lear/(a)dd/(e)dit/(W)rite/(r)emove]\n");
+		printf("\n[(m)ark or un(m)ark/e(x)it/(s)how/(c)lear/(a)dd/(e)dit/(W)rite/(r)emove]\n");
 		printf("[To save, you have to (W)rite it.\nDeletion also requires (W)riting.]\n");
 		printf("Enter choice: \n");
 		c = getchar();
@@ -300,9 +288,16 @@ int main(void) {
 				str = input_line();
 				tempedit(lptr,index,str);
 				break;
+			case 'm':
+				printf("Marking/Unmarking a task as done\n");
+				printf("Line to mark/unmark: ");
+				scanf("%d",&index);
+				input_cleaning();
+				mark_toggle(lptr,index);
+				break;
 			case 'r':
 				printf("Removing a task\n");
-				printf("Line to edit: ");
+				printf("Line to Remove: ");
 				scanf("%d",&index);
 				input_cleaning();
 				tempdel(lptr,index);
