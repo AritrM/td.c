@@ -53,6 +53,7 @@ list *loading(list *l) {
 		return NULL;
 	}
 	l->data = (task *)malloc(sizeof(task)*l->len);
+	l->data[l->ulen].ptr= l->data[l->ulen+1].ptr= NULL;
 	if (fscanf(file,"%d.[%d]",&i,&s) == EOF) {
 		printf("cannot find appropriate format\n");
 		fclose(file);
@@ -120,6 +121,7 @@ int tempadd(list *l,char *s) {
 	if (l->ulen == l->len) {
 		l->len += 2;
 		l->data = (task *) realloc(l->data,sizeof(task)*l->len);
+		l->data[l->ulen].ptr= l->data[l->ulen+1].ptr= NULL;
 	}
 	showv2(l);
 	return 0;
@@ -215,10 +217,8 @@ int tempdel(list *l,unsigned int line) {
 	return 0;
 }
 
-void free_space(list *l)
-{
-	if (l != NULL)
-	{
+void free_space(list *l) {
+	if (l != NULL) {
 		if (l->ulen > 0) {
 			while (--l->ulen > 0)
 				free(l->data[l->ulen].ptr);
