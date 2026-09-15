@@ -8,7 +8,6 @@ typedef struct {
 	int status;
 	char *ptr;
 } task;
-
 typedef struct {
 	task *data;
 	int len;
@@ -42,6 +41,7 @@ int total_entries(void)
 		return -1;
 	while ((fgets(s,MAX,file)) != NULL)
 		++index;
+	// printf("l: %d\n",index);
 	fclose(file);
 	return index;
 }
@@ -51,7 +51,6 @@ list *loading(list *lptr)
 	FILE *file = fopen("list.txt","r");
 	int i,s;
 	lptr->ulen = total_entries();
-	// printf("len: %d",lptr->ulen);
 	lptr->len = lptr->ulen + 2;
 	if (file == NULL) {
 		free(lptr);
@@ -61,9 +60,8 @@ list *loading(list *lptr)
 	if (fscanf(file,"%d.[%d]",&i,&s) == EOF)
 	{
 		printf("cannot find appropriate format\n");
-		free(lptr->data);
-		free(lptr);
-		return NULL;
+		fclose(file);
+		return lptr;
 	} else
 		freopen("list.txt","r",file);
 
@@ -102,7 +100,7 @@ void showv2(list* lptr)
 	int i = 0;
 	if (lptr == NULL)
 		printf("Tasks cannot be loaded.");
-	else while (i < lptr->ulen)
+	else while (i < lptr->len)
 	{
 		printf("%d.",i+1);
 		if (lptr->data[i].status == 1)
@@ -110,6 +108,8 @@ void showv2(list* lptr)
 		else
 			printf("@ "); //incompletion
 		printf("%s",lptr->data[i].ptr);
+		if(lptr->data[i].ptr == NULL)
+			printf("\n");
 		++i;
 	}
 }
@@ -125,15 +125,16 @@ int add(char *s)
 
 int tempadd(list *lptr,char *s)
 {
-	FILE *file = fopen("list.txt","a");
-	// int i = lptr->ulen;
-	// fprintf(file,"%d.[%d]%s",lptr->data[i].index+1,lptr->data[i].status,lptr->data[i].ptr);
 	lptr->data[lptr->ulen].index = lptr->ulen;
 	lptr->data[lptr->ulen].status = 0;
 	lptr->data[lptr->ulen].ptr = s;
 	lptr->ulen++;
+	if (lptr->ulen == lptr->len)
+	{
+		lptr->len += 2;
+		lptr->data = (task *) realloc(lptr->data,sizeof(task)*lptr->len);
+	}
 	showv2(lptr);
-	fclose(file);
 	return 0;
 }
 
@@ -216,21 +217,9 @@ int del(unsigned int line)
 
 int tempdel(list *lptr,unsigned int line)
 {
-	FILE *file_r = fopen("list.txt","r");
-	FILE *file_w = fopen("tmp.txt","w");
+	free(lptr->data[line-1].ptr);
 	lptr->data[line-1].ptr = NULL;
-	fclose(file_r);
-	fclose(file_w);
-	copy("tmp.txt","list.txt");
-	remove("tmp.txt");
 	return 0;
-}
-
-void clear_list(void)
-{
-	remove("list.txt");
-	FILE *file_r = fopen("list.txt","w");
-	fclose(file_r);
 }
 
 void free_space(list *lptr)
@@ -238,11 +227,24 @@ void free_space(list *lptr)
 	if (lptr != NULL)
 	{
 		while (--lptr->ulen > 0)
+			if(lptr->data[lptr->ulen].ptr!= NULL)
+				free(lptr->data[lptr->ulen].ptr);
+		if(lptr->data[lptr->ulen].ptr!= NULL)
 			free(lptr->data[lptr->ulen].ptr);
-		free(lptr->data[lptr->ulen].ptr);
 		free(lptr->data);
 		free(lptr);
 	}
+}
+
+void clear_list(list *lptr)
+{
+	int i = -1;
+	while (--lptr->ulen>0)
+	{
+		free(lptr->data[lptr->ulen].ptr);
+		lptr->data[lptr->ulen].ptr = NULL;
+	}
+	save(lptr);
 }
 
 list *refresh(list *lptr)
@@ -263,7 +265,7 @@ int main(void) {
 	while (1)
 	{
 		printf("\n[e(x)it/(s)how/(c)lear/(a)dd/(e)dit/(W)rite/(r)emove]\n");
-		printf("[To save, you have to write it.\nDeletion doesn't require writing.]\n");
+		printf("[To save, you have to (W)rite it.\nDeletion also requires (W)riting.]\n");
 		printf("Enter choice: \n");
 		c = getchar();
 		input_cleaning();
@@ -298,10 +300,10 @@ int main(void) {
 				printf("Line to edit: ");
 				scanf("%d",&index);
 				input_cleaning();
-				del(index);
+				tempdel(lptr,index);
 				break;
 			case 'c':
-				clear_list();
+				clear_list(lptr);
 				break;
 			case 'W':
 				if(lptr == NULL)
