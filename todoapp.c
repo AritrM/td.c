@@ -71,24 +71,7 @@ list *loading(list *l) {
 	return l;
 }
 
-int show(void) {
-	FILE *file = fopen("list.txt","r");
-	int index = 0;
-	char s[MAX];
-	if (file == NULL)
-		return 0;
-	printf("Total: %d\n",total_entries());
-	if(fgets(s,MAX,file)==NULL)
-		printf("No line.");
-	else
-		printf("%d. %s",++index,s);
-	while ((fgets(s,MAX,file)) != NULL)
-		printf("%d. %s",++index,s);
-	fclose(file);
-	return 0;
-}
-
-void showv2(list* l) {
+void show(list* l) {
 	int i = 0;
 	if (l == NULL)
 		printf("Tasks cannot be loaded.");
@@ -105,14 +88,6 @@ void showv2(list* l) {
 	}
 }
 
-int add(char *s) {
-	FILE *file = fopen("list.txt","a");
-	fputs(s,file);
-	fputs("\n",file);
-	fclose(file);
-	return 0;
-}
-
 int tempadd(list *l,char *s) {
 	l->data[l->ulen].index = l->ulen;
 	l->data[l->ulen].status = 0;
@@ -123,7 +98,7 @@ int tempadd(list *l,char *s) {
 		l->data = (task *) realloc(l->data,sizeof(task)*l->len);
 		l->data[l->ulen].ptr= l->data[l->ulen+1].ptr= NULL;
 	}
-	showv2(l);
+	show(l);
 	return 0;
 }
 
@@ -137,30 +112,10 @@ void copy(char *f1, char *f2) {
 	fclose(file_w);
 }
 
-int edit(unsigned int line, char *s) {
-	FILE *file_r = fopen("list.txt","r");
-	FILE *file_w = fopen("tmp.txt","w");
-	char task[MAX];
-	while(fgets(task,MAX,file_r)!=NULL) {
-		if (--line == 0) {
-			printf("found\n");
-			fputs(s,file_w);
-			fputs("\n",file_w);
-		}
-		else
-			fputs(task,file_w);
-	}
-	fclose(file_r);
-	fclose(file_w);
-	copy("tmp.txt","list.txt");
-	remove("tmp.txt");
-	return 0;
-}
-
 int tempedit(list *l,unsigned int line, char *s) {
 	if(line<=l->ulen) {
 		l->data[--line].ptr = s;
-		showv2(l);
+		show(l);
 	}
 	return 0;
 }
@@ -174,7 +129,7 @@ void mark_toggle(list *l, int i) {
 	}
 	else 
 		printf("No task to mark\n");
-	showv2(l);
+	show(l);
 }
 
 int save(list *l) {
@@ -189,23 +144,6 @@ int save(list *l) {
 	fclose(file);
 	copy("temp.txt","list.txt");
 	remove("temp.txt");
-	return 0;
-}
-
-int del(unsigned int line) {
-	FILE *file_r = fopen("list.txt","r");
-	FILE *file_w = fopen("tmp.txt","w");
-	char task[MAX];
-	while(fgets(task,MAX,file_r)!=NULL) {
-		if (--line == 0)
-			;
-		else
-			fputs(task,file_w);
-	}
-	fclose(file_r);
-	fclose(file_w);
-	copy("tmp.txt","list.txt");
-	remove("tmp.txt");
 	return 0;
 }
 
@@ -273,7 +211,7 @@ int main(void) {
 				exit(0);
 			case 's':
 				printf("All Tasks\n");
-				showv2(lptr);
+				show(lptr);
 				break;
 			case 'a':
 				printf("Adding a task\n");
