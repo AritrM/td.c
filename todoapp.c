@@ -63,7 +63,8 @@ list *loading(list *lptr)
 		fclose(file);
 		return lptr;
 	} else
-		freopen("list.txt","r",file);
+		// freopen("list.txt","r",file);
+		rewind(file);
 
 	while(fscanf(file,"%d.[%d]",&i,&s) != EOF)
 	{
@@ -228,10 +229,8 @@ void free_space(list *lptr)
 	{
 		if (lptr->ulen > 0) {
 			while (--lptr->ulen > 0)
-				if(lptr->data[lptr->ulen].ptr!= NULL) {
-					free(lptr->data[lptr->ulen].ptr); }
-			if(lptr->data[lptr->ulen].ptr!= NULL) {
-				free(lptr->data[lptr->ulen].ptr); }
+					free(lptr->data[lptr->ulen].ptr);
+				free(lptr->data[lptr->ulen].ptr);
 		}
 		free(lptr->data);
 		free(lptr);
