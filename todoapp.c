@@ -11,6 +11,7 @@ typedef struct {
 	task *data;
 	int len;
 	int ulen;
+	fpos_t *pos;
 } list;
 
 char* input_line(void){
