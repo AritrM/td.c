@@ -205,9 +205,11 @@ void clear_list(list *l) {
 		while (--l->ulen>0) {
 			free(l->data[l->ulen].ptr);
 			l->data[l->ulen].ptr = NULL;
+			l->data[l->ulen].status= 0;
 		}
 		free(l->data[l->ulen].ptr);
 		l->data[l->ulen].ptr = NULL;
+		l->data[l->ulen].status= 0;
 	}
 	save(l);
 }
