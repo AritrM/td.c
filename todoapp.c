@@ -2,25 +2,49 @@
 #include <stdlib.h>
 
 #define MAX 100
+#ifdef __linux__
+#define LIST_PATH "/home/calllol/newfolder/files/list.txt"
+#define TMP_PATH "/tmp/tmp.txt"
+#else
+#define LIST_PATH "idk"
+#endif
 typedef struct {
 	unsigned int index;
 	int status;
 	char *ptr;
+	size_t ulen;	/*For used spaces*/
+	size_t alen;	/*For Assigned spaces*/
 } task;
 typedef struct {
 	task *data;
 	int len;
 	int ulen;
 } list;
+typedef struct {
+	char *ptr;
+	size_t ulen;
+	size_t alen;
+} string;
 
 char* input_line(void){
-	char *s = malloc(MAX);
-	int c,i=0;
-	printf("Enter: ");
-	while (i<MAX-2 && (c=getchar()) != '\n')
-		s[i++] = c;
-	s[i++] = '\n';
-	s[i] = '\0';
+	string *str = (string*) malloc(sizeof(string));
+	char *s;
+	int c;
+	str->ulen = 0;
+	str->alen = MAX;
+	str->ptr = (char *) malloc (str->alen);
+	str->ptr[str->ulen] = '\0';
+	while ((c = getchar()) != EOF && c != '\n'){
+		str->ptr[str->ulen] = c;
+		++str->ulen;
+		if (str->ulen == str->alen) {
+			str->alen += 20;
+			str->ptr = (char*) realloc(str->ptr,str->alen);
+		}
+	}
+	str->ptr[str->ulen] = '\0';
+	s = str->ptr;
+	free(str);
 	return s;
 }
 
@@ -31,21 +55,20 @@ void input_cleaning(void) {
 }
 
 int total_entries(void) {
-	FILE *file = fopen("list.txt","r");
-	int index = 0;
-	char s[MAX];
-	if (file == NULL)
-		return -1;
-	while ((fgets(s,MAX,file)) != NULL)
-		++index;
-	// printf("l: %d\n",index);
+	FILE *file = fopen(LIST_PATH,"r");
+	int c;
+	size_t line = 0;
+	while ((c = fgetc(file))!=EOF)
+		if (c=='\n')
+			++line;
+	// printf("Len: %lu\n",line);
 	fclose(file);
-	return index;
+	return line;
 }
 
 list *loading(list *l) {
-	FILE *file = fopen("list.txt","r");
-	int i,s;
+	FILE *file = fopen(LIST_PATH,"r");
+	int i,s,c;
 	l->ulen = total_entries();
 	l->len = l->ulen + 2;
 	if (file == NULL) {
@@ -64,8 +87,19 @@ list *loading(list *l) {
 		--i;
 		l->data[i].index = i;
 		l->data[i].status = s;
-		l->data[i].ptr= malloc(MAX);
-		fgets(l->data[i].ptr,MAX,file);
+		l->data[i].ulen = 0;
+		l->data[i].alen = MAX;
+		l->data[i].ptr= (char*)malloc(l->data[i].alen);
+		l->data[i].ptr[l->data[i].ulen]='\0';
+		while((c=fgetc(file))!=EOF&&c != '\n') {
+			l->data[i].ptr[l->data[i].ulen]=c;
+			++l->data[i].ulen;
+			if (l->data[i].ulen == l->data[i].alen){
+				l->data[i].alen += 20;
+				l->data[i].ptr=(char*) realloc(l->data[i].ptr,l->data[i].alen);
+			}
+		}
+		l->data[i].ptr[l->data[i].ulen]='\0';
 	}
 	fclose(file);
 	return l;
@@ -82,7 +116,6 @@ void show(list* l) {
 		else
 			printf("☐ "); //incompletion
 		printf("%s",l->data[i].ptr);
-		if(l->data[i].ptr == NULL)
 			printf("\n");
 		++i;
 	}
@@ -133,17 +166,17 @@ void mark_toggle(list *l, int i) {
 }
 
 int save(list *l) {
-	FILE *file = fopen ("temp.txt","w");
+	FILE *file = fopen (TMP_PATH,"w");
 	int i = -1, correction = 0;
 	while(++i<l->ulen) {
 		if (l->data[i].ptr == NULL)
 			++correction;
 		else
-			fprintf(file,"%d.[%d]%s",l->data[i].index+1-correction,l->data[i].status,l->data[i].ptr);
+			fprintf(file,"%d.[%d]%s\n",l->data[i].index+1-correction,l->data[i].status,l->data[i].ptr);
 	}
 	fclose(file);
-	copy("temp.txt","list.txt");
-	remove("temp.txt");
+	copy(TMP_PATH,LIST_PATH);
+	remove(TMP_PATH);
 	return 0;
 }
 
