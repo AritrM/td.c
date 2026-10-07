@@ -1,13 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "filepath.h"
 
 #define MAX 100
-#ifdef __linux__
-#define LIST_PATH "/home/calllol/newfolder/files/list.txt"
-#define TMP_PATH "/tmp/tmp.txt"
-#else
-#define LIST_PATH "idk"
-#endif
 typedef struct {
 	unsigned int index;
 	int status;
