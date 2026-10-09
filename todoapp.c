@@ -1,8 +1,12 @@
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include "filepath.h"
 
 #define MAX 100
+int flag = 0;
+
 typedef struct {
 	unsigned int index;
 	int status;
@@ -161,8 +165,9 @@ void mark_toggle(list *l, int i) {
 }
 
 int save(list *l) {
-	FILE *file = fopen (TMP_PATH,"w");
+	FILE *file = fopen ("tmp.txt","w");
 	int i = -1, correction = 0;
+	printf("%d\n",l->ulen);
 	while(++i<l->ulen) {
 		if (l->data[i].ptr == NULL)
 			++correction;
@@ -170,7 +175,7 @@ int save(list *l) {
 			fprintf(file,"%d.[%d]%s\n",l->data[i].index+1-correction,l->data[i].status,l->data[i].ptr);
 	}
 	fclose(file);
-	copy(TMP_PATH,LIST_PATH);
+	copy("tmp.txt",LIST_PATH);
 	remove(TMP_PATH);
 	return 0;
 }
@@ -215,19 +220,34 @@ list *refresh(list *l) {
 	return loading(l1);
 }
 
+void* timeOut(void *arg) {
+	while (1) {
+		sleep(10);
+		if (flag == 0) {
+			printf("Exited.\n");
+			save((list*)arg);
+			printf("Done here.\n");
+			free_space((list*)arg);
+			exit(0);
+		}
+	}
+}
+
 int main(void) {
 	char c;
 	char *str;
 	int index;
 	list *lptr = (list *)malloc(sizeof(list));
+	pthread_t out;
+	lptr = loading(lptr);
+	pthread_create(&out,NULL,timeOut,lptr);
 	system("clear");
 	printf("To-Do List\n");
-	lptr = loading(lptr);
-	while (1)
-	{
+	while (1) {
 		printf("\n[(m)ark or un(m)ark/e(x)it/(s)how/(c)lear/(a)dd/(e)dit/(W)rite/(r)emove]\n");
 		printf("[To save, you have to (W)rite it.\nDeletion also requires (W)riting.]\n");
 		printf("Enter choice: \n");
+		flag = 0;
 		c = getchar();
 		input_cleaning();
 		system("clear");
@@ -242,11 +262,13 @@ int main(void) {
 			case 's':
 				printf("All Tasks\n");
 				show(lptr);
+				flag = 1;
 				break;
 			case 'a':
 				printf("Adding a task\n");
 				str = input_line();
 				tempadd(lptr,str);
+				flag = 1;
 				break;
 			case 'e':
 				printf("Editing a task\n");
@@ -255,6 +277,7 @@ int main(void) {
 				input_cleaning();
 				str = input_line();
 				tempedit(lptr,index,str);
+				flag = 1;
 				break;
 			case 'm':
 				printf("Marking/Unmarking a task as done\n");
@@ -262,6 +285,7 @@ int main(void) {
 				scanf("%d",&index);
 				input_cleaning();
 				mark_toggle(lptr,index);
+				flag = 1;
 				break;
 			case 'r':
 				printf("Removing a task\n");
@@ -269,6 +293,7 @@ int main(void) {
 				scanf("%d",&index);
 				input_cleaning();
 				tempdel(lptr,index);
+				flag = 1;
 				break;
 			case 'c':
 				clear_list(lptr);
